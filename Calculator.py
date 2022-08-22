@@ -64,6 +64,7 @@ def clearParenthesis(curValue):
 
 for i in range(len(str)):  # loop str
     # print (c)
+    isAppend = False
     if (str[i].isnumeric()):
         curValue = curValue*10+int(str[i])
         # print(curValue)
@@ -74,6 +75,7 @@ for i in range(len(str)):  # loop str
             if(str[i-1] == ')'):  # prevent (1+(1+1))
                 curValue = number.pop()
             curValue = clearParenthesis(curValue)
+            isAppend = True
 
         while ((len(sign) >= 1) and (len(number) >= 1)):
             curTier = getTierSign(str[i])
@@ -89,6 +91,7 @@ for i in range(len(str)):  # loop str
                 curValue = compute(prevNumber, prevSign, curValue)
                 # number.append(curValue)
                 print(number, sign)
+                isAppend = True
                 # display(curValue, str[i], i)
 
             else:
@@ -96,11 +99,12 @@ for i in range(len(str)):  # loop str
         if(str[i] != ')'):
             print('append ', str[i])
             sign.append(str[i])
-        # prevent +( and  )+ append 0
-        if((str[i] != '(') and ((str[i-1] != ')')) or len(number) == 0):
+        # prevent +( and  )+ append 0 [((str[i-1] and (str[i-1] != ')')) or len(number) == 0)]
+        if(isAppend or ((str[i] != '(') and (str[i-1].isnumeric()))):
             print('append ', curValue)
             number.append(curValue)
             curValue = 0
+            isAppend = False
 
     if (i == len(str)-1 and (str[i].isnumeric())):
         number.append(curValue)
