@@ -1,9 +1,10 @@
 import re
 
-# str = input('Input Equation :')
-str = '(12)(1)(1.2)+3(2)3'
+str = input('Input Equation :')
+# str = '(1)(2)(1.1)+1(2)3+0.-1'
 curValue = 0
 IsParenthesisSyntaxError = False
+IsSyntaxError = False
 
 # create stack of sign and number
 sign = []  # OperatorList
@@ -34,9 +35,10 @@ def floatIntCheck(checkVal):
 
 
 def parenSyntaxCheck(str):
-    IsSyntaxError = False
+    IsError = False
     # check syntax equationList
     parCheck = 0  # parenthesis check by count
+
     for i in range(len(str)):
         # parenthesis check
         if(str[i] == '('):
@@ -44,14 +46,14 @@ def parenSyntaxCheck(str):
         if(str[i] == ')'):
             parCheck -= 1
         if(parCheck < 0):
-            IsSyntaxError = True
+            IsError = True
             break
 
-    # parCheck and IsSyntaxError after complete loop
-    if(parCheck != 0 or IsSyntaxError):
-        IsSyntaxError = True
+    # parCheck and IsError after complete loop
+    if(parCheck != 0 or IsError):
+        IsError = True
         print("Wrong syntax of parenthesis ()")
-    return IsSyntaxError
+    return IsError
 
 
 def insertStr(strOriginal, strInsert, index):
@@ -59,12 +61,10 @@ def insertStr(strOriginal, strInsert, index):
 
 
 def syntaxModifier(str):
-    # IsDefect = True
-    # check hidden syntax while loop
-    # while IsDefect:
-    # CASE I : (1)(2)(3)  1(2)3
+    # CASE I : [')(', '1(2)', '(2))3'] Ex (1)(2)(3)  1(2)3
     # just insert * between (1)*(2)*(3)  1*(2)*3
     if(re.findall('\)\(', str)):
+        # use revere loop due to prevent index shift by insertion
         for defect in reversed(list(re.finditer('\)\(', str))):
             str = insertStr(str, '*', defect.start()+1)
     if(re.findall('\d\(', str)):
@@ -73,9 +73,29 @@ def syntaxModifier(str):
     if(re.findall('\)\d', str)):
         for defect in reversed(list(re.finditer('\)\d', str))):
             str = insertStr(str, '*', defect.start()+1)
+    # CASE II : ['+-2', '(-2', ')-1', '.-1', '/-1', '*-1', '--1']
+    # easy insert 0 ['+-2', '(-2'] +0-2 (0-2
+    if(re.findall('[(+]\-\d', str)):
+        for defect in reversed(list(re.finditer('[(+]\-\d', str))):
+            str = insertStr(str, '0', defect.start()+1)
+    # change -- to +
+    if(re.findall('\-\-\d', str)):
+        for defect in reversed(list(re.finditer('\-\-\d', str))):
+            index = defect.start()+1
+            symbol = '+'
+            if(index == 1):
+                symbol = ''
+            str = str[:index-1]+symbol+str[index+1:]
 
-    # if(not IsDefect):
-    #     break
+    # insert 0 between +-*/(.1 -> +-*(0.1
+    if(re.findall('\D\.\d+', str)):
+        for defect in reversed(list(re.finditer('\D\.\d+', str))):
+            str = insertStr(str, '0', defect.start()+1)
+    # start with .1
+    if(re.findall('^\.\d+', str)):
+        for defect in reversed(list(re.finditer('^\.\d+', str))):
+            str = insertStr(str, '0', defect.start())
+
     return str
 
 
@@ -145,16 +165,25 @@ def clearParenthesis(curValue):
 
 # use regex to converse str to equationList
 print('Input String :', str)
+
+if(re.findall('\(\)', str)):
+    IsParenthesisSyntaxError = True
+    print("Wrong syntax of parenthesis ()")
+if(re.findall('\.\-\d', str)):
+    IsSyntaxError = True
+    print("Wrong syntax of float number")
+
+
 str = syntaxModifier(str)
-print(' String syntaxModifier:', str)
+print('String syntaxModifier:', str)
 equationList = strToEquationList(str)
 print('equationList', equationList)
 
-
-IsParenthesisSyntaxError = parenSyntaxCheck(equationList)
-
-
 if(IsParenthesisSyntaxError == False):
+    IsParenthesisSyntaxError = parenSyntaxCheck(equationList)
+
+
+if(IsParenthesisSyntaxError == False and IsSyntaxError == False):
     for i in range(len(equationList)):  # loop equationList
         # print (c)
         isAppend = False
