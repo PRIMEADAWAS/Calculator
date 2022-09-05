@@ -4,33 +4,35 @@ for my Msc python homework
 
 ## Algorythm
 
-input equation in string type
+- Input equation in string type
 
-check error syntax in string and string modification
-Ex: Error
-1/0.-1 throw float error
-)( close parenthesis before open
-((()) non complete pair of parenthesis
+> Check error syntax in string and string modification
+> Ex: Error
+> 1/0.-1 throw float error
+> )( close parenthesis before open
+> ((()) non complete pair of parenthesis
 
-EX: String modification
-.1--1+1+(12)(12)(12.123)+-2-2*-(-2+3-2)-1/0.1+1/.1+1/.1+1/-11(12)+3(12)3*-12--12+1/-11.1+.1
-fill .1 -> 0.1
-insert multiply between (12)(12)(12.123) and 3(12)3
+> EX: String modification
+> .1--1+1+(12)(12)(12.123)+-2-2*-(-2+3-2)-1/0.1+1/.1+1/.1+1/-11(12)+3(12)3*-12--12+1/-11.1+.1
+> Fill .1 -> 0.1
+> Insert multiply between (12)(12)(12.123) and 3(12)3
+> String syntaxModifier: 0+0.1+1+1+(12)_(12)_(12.123)+0-2-2*(0-1)*(0-2+3-2)-1/0.1+1/0.1+1/(0-11)_(12)+3_(12)_3_(0-12)+12+1/(0-11.1)+0.1
 
-separate string by reg ex split it into list
+> Separate string by reg ex split it into list
+> ['0', '+', '0.1', '+', '1', '+', '1', '+', '(', '12', ')', '*', '(', '12', ')', '*', '(', '12.123', ')', '+', '0', '-', '2', '-', '2', '*', '(', '0', '-', '1', ')', '*', '(', '0', '-', '2', '+', '3', '-', '2', ')', '-', '1', '/', '0.1', '+', '1', '/', '0.1', '+', '1', '/', '(', '0', '-', '11', ')', '*', '(', '12', ')', '+', '3', '*', '(', '12', ')', '*', '3', '*', '(', '0', '-', '12', ')', '+', '12', '+', '1', '/', '(', '0', '-', '11.1', ')', '+', '0.1']
 
-get list data and loop check list one by one
+- Get list data and loop check list one by one
 
-first check it was number or not
+- First check it was number or not
 
-and put number to stack, operator to sign
+- Then put number to stack, operator to sign
 
-then check symbol and give it a tier number
+- Then check symbol and give it a tier number
 
-compare with previous sign in stack
+- Compare with previous sign in stack
 
-and De-tier that equation
+- And De-tier that equation to simple equation
 
-find first close parenthesis and clear or simplify it to number
+- Find first close parenthesis and clear or simplify it to number
 
-finally you get a simply equation with out any tier order problem and solve the last one
+- Finally you get a simply equation with out any tier order problem and solve the last one
