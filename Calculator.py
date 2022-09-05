@@ -1,7 +1,10 @@
+from asyncio.windows_events import NULL
 import re
 
-str = input('Input Equation :')
 # str = '(1)(2)(1.1)+1(2)3+0.-1'
+# str = '.1--1+1+(12)(12)(12.123)+-2-2*-(-2+3-2)-1/0.1+1/.1+1/.1+1/-11(12)+3(12)3*-12--12+1/-11.1+.1'
+str = input('Input Equation :')
+
 curValue = 0
 IsParenthesisSyntaxError = False
 IsSyntaxError = False
@@ -26,10 +29,8 @@ def strToEquationList(str):
 def floatIntCheck(checkVal):
     value = 0
     if(bool(re.search(regFloat, checkVal))):
-        print('FLoatNum:', float(checkVal))
         value = float(checkVal)
     elif(bool(re.search(regNum, checkVal))):
-        print('IntNum:', int(checkVal))
         value = int(checkVal)
     return value
 
@@ -61,6 +62,8 @@ def insertStr(strOriginal, strInsert, index):
 
 
 def syntaxModifier(str):
+    if(str[0] != '-'):
+        str = '0+'+str
     # CASE I : [')(', '1(2)', '(2))3'] Ex (1)(2)(3)  1(2)3
     # just insert * between (1)*(2)*(3)  1*(2)*3
     if(re.findall('\)\(', str)):
@@ -74,6 +77,10 @@ def syntaxModifier(str):
         for defect in reversed(list(re.finditer('\)\d', str))):
             str = insertStr(str, '*', defect.start()+1)
     # CASE II : ['+-2', '(-2', ')-1', '.-1', '/-1', '*-1', '--1']
+    # easy insert 0 ['+-(2'] +0-(2 -0-(2
+    if(re.findall('[-+]\-\(', str)):
+        for defect in reversed(list(re.finditer('[-+]\-\(', str))):
+            str = insertStr(str, '0', defect.start()+1)
     # easy insert 0 ['+-2', '(-2'] +0-2 (0-2
     if(re.findall('[(+]\-\d', str)):
         for defect in reversed(list(re.finditer('[(+]\-\d', str))):
@@ -83,6 +90,7 @@ def syntaxModifier(str):
         for defect in reversed(list(re.finditer('\-\-\d', str))):
             index = defect.start()+1
             symbol = '+'
+            # check starting index
             if(index == 1):
                 symbol = ''
             str = str[:index-1]+symbol+str[index+1:]
@@ -92,9 +100,32 @@ def syntaxModifier(str):
         for defect in reversed(list(re.finditer('\D\.\d+', str))):
             str = insertStr(str, '0', defect.start()+1)
     # start with .1
-    if(re.findall('^\.\d+', str)):
-        for defect in reversed(list(re.finditer('^\.\d+', str))):
-            str = insertStr(str, '0', defect.start())
+    # if(re.findall('^\.\d+', str)):
+    #     for defect in reversed(list(re.finditer('^\.\d+', str))):
+    #         str = insertStr(str, '0', defect.start())
+
+    # /*-1.1
+    if(re.findall('[/*]\-\d+\.\d+', str)):
+        for defect in reversed(list(re.finditer('[/*]\-\d+\.\d+', str))):
+            str = insertStr(str, ')', defect.end())
+            str = insertStr(str, '(0', defect.start()+1)
+    # /*-1
+    if(re.findall('[/*]\-\d+', str)):
+        for defect in reversed(list(re.finditer('[/*]\-\d+', str))):
+            str = insertStr(str, ')', defect.end())
+            str = insertStr(str, '(0', defect.start()+1)
+
+    # start with -(
+    # if(re.findall('^\-\(', str)):
+    #     for defect in reversed(list(re.finditer('^\-\(', str))):
+    #         str = insertStr(str, '1)*', defect.end()-1)
+    #         str = insertStr(str, '(0', defect.start())
+
+    # *-(
+    if(re.findall('[*/]\-\(', str)):
+        for defect in reversed(list(re.finditer('[*/]\-\(', str))):
+            str = insertStr(str, '1)*', defect.end()-1)
+            str = insertStr(str, '(0', defect.start()+1)
 
     return str
 
@@ -133,38 +164,21 @@ def compute(firstNum, operator, secondNum):
     return result
 
 
-def display(curValue, curSign, index=False):
-    for i in range(len(number)):
-        print(number[i], sign[i], end=' ')
-
-    print(curValue, end=' ')
-    if(index):
-        print(curSign, equationList[index+1:-1] + equationList[-1])
-
-
 def clearParenthesis(curValue):
     while ((len(sign) >= 1) and (len(number) >= 1)):
         prevSign = sign.pop()
         if((prevSign == '(')):
-            print('already pop ( out')
             break
         prevNumber = number.pop()
-        print(prevNumber, prevSign, curValue)
-        print('compute', compute(prevNumber, prevSign, curValue))
         curValue = compute(prevNumber, prevSign, curValue)
-        print('clearParenthesis', number, sign)
-        # display(curValue, prevSign)
-        print('')
     # prevent bug error from len number = 0 but sign = 1 and have '('
-    if(len(sign) >= 0):
+    if(len(sign) >= 1):
         if(sign[-1] == '('):
-            print('clear (')
             sign.pop()
     return curValue
 
 
 # use regex to converse str to equationList
-print('Input String :', str)
 
 if(re.findall('\(\)', str)):
     IsParenthesisSyntaxError = True
@@ -175,13 +189,10 @@ if(re.findall('\.\-\d', str)):
 
 
 str = syntaxModifier(str)
-print('String syntaxModifier:', str)
 equationList = strToEquationList(str)
-print('equationList', equationList)
 
 if(IsParenthesisSyntaxError == False):
     IsParenthesisSyntaxError = parenSyntaxCheck(equationList)
-
 
 if(IsParenthesisSyntaxError == False and IsSyntaxError == False):
     for i in range(len(equationList)):  # loop equationList
@@ -190,12 +201,9 @@ if(IsParenthesisSyntaxError == False and IsSyntaxError == False):
         # equationList[i][0].isnumeric()
         if (bool(re.search(regNum, equationList[i]))):
             curValue = floatIntCheck(equationList[i])
-            # print(curValue)
         # not(equationList[i][0].isnumeric())
         elif (bool(re.search(regSign, equationList[i]))):
-            # if((len(sign) >= 1) and (len(number) >= 1)):
             if((equationList[i] == ')')):
-                print('find )')
                 if(equationList[i-1] == ')'):  # prevent (1+(1+1))
                     curValue = number.pop()
                 curValue = clearParenthesis(curValue)
@@ -205,55 +213,39 @@ if(IsParenthesisSyntaxError == False and IsSyntaxError == False):
                 curTier = getTierSign(equationList[i])
                 prevTier = getTierSign(sign[-1])  # get tier from top stack
                 if((prevTier >= curTier) and (prevTier != 5)):
-                    print('prev:', prevTier, 'cur:', curTier)
-                    if(equationList[i-1] == ')'):  # prevent (1*2)+(1*3)+1
+                    if(curValue == 'null'):  # prevent (1*2)+(1*3)+1
                         curValue = number.pop()
                     prevNumber = number.pop()
                     prevSign = sign.pop()  # pop it  out
-                    print(prevNumber, prevSign, curValue)
-                    print(compute(prevNumber, prevSign, curValue))
                     curValue = compute(prevNumber, prevSign, curValue)
-                    # number.append(curValue)
-                    print(number, sign)
                     isAppend = True
-                    # display(curValue, equationList[i], i)
 
                 else:
                     break
             if(equationList[i] != ')'):
-                print('append ', equationList[i])
                 sign.append(equationList[i])
             # prevent +( and  )+ append 0 [((equationList[i-1] and (equationList[i-1] != ')')) or len(number) == 0)]
             if(isAppend or ((equationList[i] != '(') and (bool(re.search(regNum, equationList[i-1]))))):
-                print('append ', curValue)
                 number.append(curValue)
-                curValue = 0
+                curValue = 'null'
                 isAppend = False
 
+        if(curValue == errorDivideZero):
+            print(curValue)
+            break
         if (i == len(equationList)-1 and (bool(re.search(regNum, equationList[i])))):
             number.append(curValue)
-            curValue = 0
-        print(number, sign)
-
-    print('Simplify', number, sign)
+            curValue = 'null'
+    # after De-tier equation
     curValue = number.pop()
 
+    # clear simple equation
     while ((len(sign) >= 1) and (len(number) >= 1)):
-        # curTier = getTierSign(equationList[i])
-        # prevTier = getTierSign(sign[-1])
-        # if(prevTier <= curTier):
-        # print('prev:', prevTier, 'cur:', curTier)
         prevNumber = number.pop()
         prevSign = sign.pop()  # pop it  out
         if((prevSign == '(') or (prevSign == ')')):
             prevSign = sign.pop()
-        print(prevNumber, prevSign, curValue)
-        print(compute(prevNumber, prevSign, curValue))
         curValue = compute(prevNumber, prevSign, curValue)
-        # number.append(curValue)
-        # print(number, sign)
-        display(curValue, prevSign)
-        print('')
 
     number.append(curValue)
     print('[Result :', number[0], "]")
