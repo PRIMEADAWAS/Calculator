@@ -196,7 +196,6 @@ if(IsParenthesisSyntaxError == False):
 
 if(IsParenthesisSyntaxError == False and IsSyntaxError == False):
     for i in range(len(equationList)):  # loop equationList
-        # print (c)
         isAppend = False
         # equationList[i][0].isnumeric()
         if (bool(re.search(regNum, equationList[i]))):
